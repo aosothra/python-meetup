@@ -1,3 +1,8 @@
 from django.contrib import admin
 
-# Register your models here.
+from convention.models import Attendee
+
+
+@admin.register(Attendee)
+class AttendeeAdmin(admin.ModelAdmin):
+    pass
