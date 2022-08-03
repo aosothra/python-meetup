@@ -6,6 +6,12 @@ class Attendee(models.Model):
     """Event attendee model"""
 
     telegram_id = models.IntegerField("ID в телеграмме", primary_key=True)
+    telegram_username = models.CharField(
+        "Логин в телеграмме",
+        max_length=32,
+        null=True,
+        blank=True,
+    )
     firstname = models.CharField(
         "Имя",
         max_length=40,
@@ -36,7 +42,15 @@ class Attendee(models.Model):
         verbose_name_plural = "Участники"
 
     def is_anonymous(self):
-        return not all([self.firstname, self.lastname, self.company, self.position])
+        return not all(
+            [
+                self.telegram_username,
+                self.firstname,
+                self.lastname,
+                self.company,
+                self.position,
+            ]
+        )
 
     def is_speaker(self):
         try:
