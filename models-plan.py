@@ -2,19 +2,17 @@ from tkinter import CASCADE
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+
 class Attendee(models.Model):
     """Event attendee model"""
-    
-    telegram_id = models.IntegerField(
-        "ID в телеграмме",
-        primary_key=True
-    )    
+
+    telegram_id = models.IntegerField("ID в телеграмме", primary_key=True)
     firstname = models.CharField(
         "Имя",
         max_length=40,
         null=True,
         blank=True,
-    )    
+    )
     lastname = models.CharField(
         "Фамилия",
         max_length=40,
@@ -32,7 +30,7 @@ class Attendee(models.Model):
         max_length=100,
         null=True,
         blank=True,
-    )    
+    )
 
     class Meta:
         verbose_name = "Участник"
@@ -40,24 +38,24 @@ class Attendee(models.Model):
 
     def is_speaker(self):
         """Участник выступает"""
-        
+
         try:
             self.speeches
             return True
         except Speech.DoesNotExist:
             return False
-    
+
     def __str__(self):
         return self.telegram_id
-    
-    
+
+
 class Event(models.Model):
     """Поток мероприятия"""
-    
+
     title = models.CharField(
         "Название потока",
         max_length=100,
-    )    
+    )
 
     class Meta:
         verbose_name = "Поток"
@@ -69,23 +67,20 @@ class Event(models.Model):
 
 class EventBlock(models.Model):
     """Блок выступлений"""
-    
+
     title = models.CharField(
         "Название блока",
         max_length=100,
     )
-    
+
     event = models.ForeignKey(
-        Event,
-        verbose_name="Поток",
-        related_name="blocks",
-        on_delete=models.CASCADE
+        Event, verbose_name="Поток", related_name="blocks", on_delete=models.CASCADE
     )
-    
+
     starts_on = models.DateTimeField(
         "Время начала блока",
     )
-    
+
     ends_on = models.DateTimeField(
         "Время окончания блока",
     )
@@ -100,7 +95,7 @@ class EventBlock(models.Model):
 
 class Speech(models.Model):
     """Выступление"""
-    
+
     title = models.CharField(
         "Название блока",
         max_length=100,
@@ -122,7 +117,7 @@ class Speech(models.Model):
     ends_on = models.DateTimeField(
         "Время окончания выступления",
     )
-    
+
     class Meta:
         verbose_name = "Выступление"
         verbose_name_plural = "Выступления"
@@ -133,24 +128,20 @@ class Speech(models.Model):
 
 class Question(models.Model):
     """Вопрос к выступающему"""
-    
+
     asker = models.ForeignKey(
         Attendee,
         related_name="asked_questions",
         verbose_name="Автор вопроса",
         on_delete=models.CASCADE,
     )
-    question_text = models.TextField(
-        "Содержание вопроса"
-    )
-    asked_on = models.DateTimeField(
-        "Время поступления вопроса"
-    )
+    question_text = models.TextField("Содержание вопроса")
+    asked_on = models.DateTimeField("Время поступления вопроса")
     reciever = models.ForeignKey(
         Attendee,
         related_name="recieved_questions",
         verbose_name="Опрашиваемый спикер",
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
     answer_text = models.TextField(
         "Содержание ответа",
