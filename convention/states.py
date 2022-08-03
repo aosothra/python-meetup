@@ -84,8 +84,6 @@ class SignupPositionState(State):
         )
 
     def handle_input(self, update: Update, context: CallbackContext):
-        chat_id = update.effective_chat.id
-
         if not update.message:
             return None
 
@@ -124,11 +122,13 @@ class SignupConfirmState(State):
 
         answer = update.callback_query.data
         if answer == "confirm":
+            telegram_username = update.callback_query.from_user.username
             attendee = Attendee.objects.get(telegram_id=chat_id)
             attendee.firstname = context.user_data["firstname"]
             attendee.lastname = context.user_data["lastname"]
             attendee.company = context.user_data["company"]
             attendee.position = context.user_data["position"]
+            attendee.telegram_username = telegram_username
             attendee.save()
 
             context.bot.send_message(
