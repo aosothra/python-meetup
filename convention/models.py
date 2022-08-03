@@ -46,4 +46,9 @@ class Attendee(models.Model):
             return False
 
     def __str__(self):
-        return self.telegram_id
+        name = (
+            f"{self.firstname} {self.lastname}"
+            if not self.is_anonymous()
+            else "Анонимный участник"
+        )
+        return f"{self.telegram_id} - {name}"
