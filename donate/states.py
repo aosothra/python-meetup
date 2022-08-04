@@ -32,29 +32,6 @@ class DonateState(State):
         pass
 
 
-class DonateAgainState(State):
-    def display_data(self, chat_id: int, update: Update, context: CallbackContext):
-        context.bot.send_message(
-            chat_id=chat_id,
-            text="Вы ввели не число! Пожалуйста, введите целое число.",
-        )
-
-    def handle_input(self, update: Update, context: CallbackContext):
-        if not update.message:
-            return None
-
-        answer = update.message.text
-
-        if answer.isdigit() == True:
-            context.user_data["donate"] = int(answer)
-            return PaymentState()
-        else:
-            return DonateAgainState()
-
-    def clean_up(self, update: Update, context: CallbackContext):
-        pass
-
-
 class PaymentState(State):
     def display_data(self, chat_id: int, update: Update, context: CallbackContext):
         self.message = context.bot.send_message(
