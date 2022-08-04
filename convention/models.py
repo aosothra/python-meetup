@@ -2,10 +2,31 @@ from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 
 
+class Event(models.Model):
+    title = models.CharField(
+        "Название ивента",
+        max_length=32,
+    )
+    starting_date = models.DateField("День начала ивента")
+    ending_date = models.DateField("День окончания ивента")
+
+    class Meta:
+        verbose_name = "Ивент"
+        verbose_name_plural = "Ивенты"
+
+    def __str__(self):
+        return self.title
+
+
 class Attendee(models.Model):
     """Event attendee model"""
 
     telegram_id = models.IntegerField("ID в телеграмме", primary_key=True)
+    events = models.ManyToManyField(
+        Event,
+        related_name="attendees",
+        verbose_name="Ивенты",
+    )
     telegram_username = models.CharField(
         "Логин в телеграмме",
         max_length=32,
@@ -71,20 +92,6 @@ class Attendee(models.Model):
         return f"{self.telegram_id} - {name}"
 
 
-class Event(models.Model):
-    title = models.CharField(
-        "Название ивента",
-        max_length=32,
-    )
-
-    class Meta:
-        verbose_name = "Ивент"
-        verbose_name_plural = "Ивенты"
-
-    def __str__(self):
-        return self.title
-
-
 class Flow(models.Model):
     title = models.CharField(
         "Название потока",
@@ -93,6 +100,7 @@ class Flow(models.Model):
     event = models.ForeignKey(
         Event,
         related_name="flows",
+        verbose_name="Ивент",
         on_delete=models.CASCADE,
     )
 
@@ -112,8 +120,11 @@ class Block(models.Model):
     flow = models.ForeignKey(
         Flow,
         related_name="blocks",
+        verbose_name="Поток",
         on_delete=models.CASCADE,
     )
+    starts_at = models.DateTimeField("Время начала блока")
+    ends_at = models.DateTimeField("Время окончания блока")
 
     class Meta:
         verbose_name = "Блок докладов"
@@ -131,12 +142,13 @@ class Presentation(models.Model):
     block = models.ForeignKey(
         Block,
         related_name="presentations",
+        verbose_name="Блок",
         on_delete=models.CASCADE,
     )
-    speaker = models.ForeignKey(
+    speakers = models.ManyToManyField(
         Attendee,
         related_name="presentations",
-        on_delete=models.CASCADE,
+        verbose_name="Спикеры",
     )
 
     class Meta:
