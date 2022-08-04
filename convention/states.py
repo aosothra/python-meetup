@@ -1,6 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
-from convention.models import Attendee
+from convention.models import Attendee, Event
 
 from convention.state_machine import State
 
@@ -151,9 +151,13 @@ class SignupConfirmState(State):
 
 class SchedulePickEventState(State):
     def display_data(self, chat_id: int, update: Update, context: CallbackContext):
+        # FIXME: выбирать мероприятия динамически
+        event = Event.objects.get(pk=1)
         menu_keyboard = [
-            [InlineKeyboardButton("Назад", callback_data="back")],
+            [InlineKeyboardButton(flow.title, callback_data=f"flow{flow.id}")]
+            for flow in event.flows.all()
         ]
+        menu_keyboard.append([InlineKeyboardButton("Назад", callback_data="back")])
         self.message = context.bot.send_message(
             chat_id=chat_id,
             text="Выберите поток мероприятия:",
