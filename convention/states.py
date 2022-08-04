@@ -1,8 +1,12 @@
 import random
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CallbackContext
-from convention.models import Attendee, Event
 
+from django.template.loader import render_to_string
+
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.constants import PARSEMODE_HTML
+from telegram.ext import CallbackContext
+
+from convention.models import Attendee, Event
 from python_meetup.state_machine import State
 
 
@@ -66,7 +70,7 @@ class SignupCompanyState(State):
         lastname = context.user_data["lastname"]
         context.bot.send_message(
             chat_id=chat_id,
-            text=f"Приятно познакомиться, {firstname} {lastname}. Скажите, пожалуйста, где Вы работаете?",
+            text=f"Приятно познакомиться, {firstname}. Скажите, пожалуйста, где Вы работаете?",
         )
 
     def handle_input(self, update: Update, context: CallbackContext):
@@ -96,13 +100,15 @@ class SignupPositionState(State):
 
 class SignupConfirmState(State):
     def display_data(self, chat_id: int, update: Update, context: CallbackContext):
-        firstname = context.user_data["firstname"]
-        lastname = context.user_data["lastname"]
-        company = context.user_data["company"]
-        position = context.user_data["position"]
-        message_text = (
-            "Пожалуйста проверьте анкету, убедитесь что все верно:"
-            f"\n{firstname} {lastname}\n{position}\n{company}"
+
+        message_text = render_to_string(
+            "user_application.html",
+            context={
+                "firstname": context.user_data["firstname"],
+                "lastname": context.user_data["lastname"],
+                "company": context.user_data["company"],
+                "position": context.user_data["position"],
+            },
         )
 
         menu_keyboard = [
@@ -113,6 +119,7 @@ class SignupConfirmState(State):
         self.message = context.bot.send_message(
             chat_id=chat_id,
             text=message_text,
+            parse_mode=PARSEMODE_HTML,
             reply_markup=InlineKeyboardMarkup(menu_keyboard),
         )
 
@@ -140,7 +147,8 @@ class SignupConfirmState(State):
             return NetworkingMenuState()
         else:
             context.bot.send_message(
-                chat_id=chat_id, text="Ничего страшного, мы можем попробовать снова."
+                chat_id=chat_id,
+                text="Ничего страшного, мы можем попробовать снова позже.",
             )
             return MenuState()
 
@@ -231,11 +239,14 @@ class NetworkingSuggestionState(State):
         ]
 
         self.pick_random_suggestion(chat_id, context)
-        message_text = f"{self.suggestion.get_networking_application()}"
+        message_text = render_to_string(
+            "suggestion.html", context={"application": self.suggestion}
+        )
 
         self.message = context.bot.send_message(
             chat_id=chat_id,
             text=message_text,
+            parse_mode=PARSEMODE_HTML,
             reply_markup=InlineKeyboardMarkup(menu_keyboard),
         )
 
@@ -268,15 +279,14 @@ class NetworkingPresentApplicationState(State):
             [InlineKeyboardButton("Вернуться", callback_data="back")],
         ]
 
-        message_text = (
-            f"Отлично! Теперь Вы можете познакомиться.\n\n"
-            f"{self.application.get_networking_application()}"
-            f"\n\nКонтакт в телеграмме: http://t.me/{self.application.telegram_username}"
+        message_text = render_to_string(
+            "suggested_application.html", context={"application": self.application}
         )
 
         self.message = context.bot.send_message(
             chat_id=chat_id,
             text=message_text,
+            parse_mode=PARSEMODE_HTML,
             reply_markup=InlineKeyboardMarkup(menu_keyboard),
         )
 
