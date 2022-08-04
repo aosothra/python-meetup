@@ -21,11 +21,10 @@ class Event(models.Model):
 class Attendee(models.Model):
     """Event attendee model"""
 
-    telegram_id = models.IntegerField("ID в телеграмме", primary_key=True)
-    events = models.ManyToManyField(
-        Event,
-        related_name="attendees",
-        verbose_name="Ивенты",
+    id = models.AutoField("ID", primary_key=True)
+    telegram_id = models.IntegerField("ID в телеграмме")
+    event = models.ForeignKey(
+        Event, related_name="attendees", verbose_name="Ивент", on_delete=models.CASCADE
     )
     telegram_username = models.CharField(
         "Логин в телеграмме",
@@ -59,6 +58,7 @@ class Attendee(models.Model):
     )
 
     class Meta:
+        unique_together = ("telegram_id", "event")
         verbose_name = "Участник"
         verbose_name_plural = "Участники"
 
