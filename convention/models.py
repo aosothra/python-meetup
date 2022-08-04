@@ -115,7 +115,15 @@ class Flow(models.Model):
 class Block(models.Model):
     title = models.CharField(
         "Название блока",
-        max_length=32,
+        max_length=100,
+    )
+    moderator = models.ForeignKey(
+        Attendee,
+        related_name="moderated_blocks",
+        verbose_name="Модератор",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     flow = models.ForeignKey(
         Flow,
@@ -137,7 +145,7 @@ class Block(models.Model):
 class Presentation(models.Model):
     title = models.CharField(
         "Название выступления",
-        max_length=32,
+        max_length=100,
     )
     block = models.ForeignKey(
         Block,
