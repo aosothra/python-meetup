@@ -1,6 +1,7 @@
 import random
 
 from django.template.loader import render_to_string
+from django.utils import timezone
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import PARSEMODE_HTML
@@ -13,6 +14,25 @@ from python_meetup.state_machine import State
 
 class MenuState(State):
     def display_data(self, chat_id: int, update: Update, context: CallbackContext):
+        now = timezone.now()
+        try:
+            context.user_data["present_event"] = Event.objects.get(
+                starting_date__lte=now, ending_date__gte=now
+            )
+            self.attendee = Attendee.objects.get_or_create(
+                telegram_id=chat_id, event=context.user_data["present_event"]
+            )
+        except Event.DoesNotExist:
+            context.bot.send_message(
+                chat_id=chat_id,
+                text=(
+                    "Похоже мероприятие завершилось или еще не началось.\n"
+                    "Следите за новостями чтобы не пропустить следующее мероприятие."
+                ),
+                reply_markup=InlineKeyboardMarkup(menu_keyboard),
+            )
+            return
+
         menu_keyboard = [
             [InlineKeyboardButton("Расписание", callback_data="schedule")],
             [InlineKeyboardButton("Вопросы и ответы", callback_data="qa")],
@@ -38,7 +58,7 @@ class MenuState(State):
             return SchedulePickEventState()
         elif answer == "networking":
             attendee, new = Attendee.objects.get_or_create(telegram_id=chat_id)
-            if new or attendee.is_anonymous():
+            if attendee.is_anonymous():
                 return SignupNameState()
             return NetworkingMenuState()
         elif answer == "donate":
@@ -135,7 +155,9 @@ class SignupConfirmState(State):
         answer = update.callback_query.data
         if answer == "confirm":
             telegram_username = update.callback_query.from_user.username
-            attendee = Attendee.objects.get(telegram_id=chat_id)
+            attendee = Attendee.objects.get(
+                telegram_id=chat_id, event=context.user_data["present_event"]
+            )
             attendee.firstname = context.user_data["firstname"]
             attendee.lastname = context.user_data["lastname"]
             attendee.company = context.user_data["company"]
@@ -213,7 +235,7 @@ class NetworkingMenuState(State):
 class NetworkingSuggestionState(State):
     def pick_random_suggestion(self, chat_id, context: CallbackContext):
         suggestions_queryset = Attendee.objects.filter(
-            telegram_username__isnull=False
+            telegram_username__isnull=False, event=context.user_data["present_event"]
         ).exclude(telegram_id=chat_id)
 
         prev_suggestions = context.user_data.get("prev_suggestions", [])
@@ -228,7 +250,8 @@ class NetworkingSuggestionState(State):
         if total_suggestions == 0:
             context.user_data["prev_suggestions"] = []
             suggestions_queryset = Attendee.objects.filter(
-                telegram_username__isnull=False
+                telegram_username__isnull=False,
+                event=context.user_data["present_event"],
             ).exclude(telegram_id=chat_id)
 
         self.suggestion = random.choice(suggestions_queryset)
