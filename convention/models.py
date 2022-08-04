@@ -117,6 +117,7 @@ class Block(models.Model):
         "Название блока",
         max_length=100,
     )
+    description = models.TextField("Описание блока", null=True, blank=True)
     moderator = models.ForeignKey(
         Attendee,
         related_name="moderated_blocks",
