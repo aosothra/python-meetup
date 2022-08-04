@@ -7,6 +7,7 @@ from telegram.constants import PARSEMODE_HTML
 from telegram.ext import CallbackContext
 
 from convention.models import Attendee, Event
+from donate.states import DonateState
 from python_meetup.state_machine import State
 
 
@@ -40,6 +41,8 @@ class MenuState(State):
             if new or attendee.is_anonymous():
                 return SignupNameState()
             return NetworkingMenuState()
+        elif answer == "donate":
+            return DonateState()
 
     def clean_up(self, update: Update, context: CallbackContext):
         self.message.edit_reply_markup()

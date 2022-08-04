@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "convention.apps.ConventionConfig",
+    "donate.apps.DonateConfig",
 ]
 
 MIDDLEWARE = [
@@ -116,3 +117,5 @@ STATIC_URL = "/static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 BOT_TOKEN = env("TG_BOT_TOKEN")
+
+PAYMENT_BOT_TOKEN= env("PAYMENT_BOT_TOKEN")
