@@ -9,7 +9,7 @@ from telegram.ext import (
 )
 
 from convention.states import MenuState
-from convention.state_machine import StateMachine
+from python_meetup.state_machine import StateMachine
 
 
 class Command(BaseCommand):
