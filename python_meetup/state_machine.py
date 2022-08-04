@@ -23,13 +23,19 @@ class State:
 
 
 class StateMachine:
+    INITIAL_STATE = "INITIAL_STATE"
+
     def __init__(self, InitialState):
         self.users_state = dict()
         self.InitialState = InitialState
 
     def handle_message(self, update: Update, context: CallbackContext):
         # Reset state to initial upon /start command regardless of current state
-        chat_id = update.effective_chat.id
+        chat_id = (
+            update.effective_chat.id
+            if update.effective_chat
+            else update.pre_checkout_query.from_user.id
+        )
 
         if update.message and update.message.text == "/start":
             self.users_state[chat_id] = self.InitialState()
@@ -41,7 +47,10 @@ class StateMachine:
             return
 
         new_state = self.users_state[chat_id].handle_input(update, context)
+
         if new_state:
+            if new_state == StateMachine.INITIAL_STATE:
+                new_state = self.InitialState()
             # Clean up previous state
             self.users_state[chat_id].clean_up(update, context)
 

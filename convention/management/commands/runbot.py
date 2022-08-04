@@ -10,7 +10,6 @@ from telegram.ext import (
 )
 
 from convention.states import MenuState
-from donate.states import precheckout_callback
 from python_meetup.state_machine import StateMachine
 
 
@@ -23,7 +22,7 @@ class Command(BaseCommand):
         updater = Updater(token)
         dispatcher = updater.dispatcher
         dispatcher.add_handler(CallbackQueryHandler(state_machine.handle_message))
-        dispatcher.add_handler(PreCheckoutQueryHandler(precheckout_callback))
+        dispatcher.add_handler(PreCheckoutQueryHandler(state_machine.handle_message))
         dispatcher.add_handler(
             MessageHandler(Filters.text, state_machine.handle_message)
         )
