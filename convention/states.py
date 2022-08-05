@@ -196,7 +196,7 @@ class NetworkingMenuState(State):
             [InlineKeyboardButton("Вернуться в меню", callback_data="back")],
         ]
         suggestions_queryset = Attendee.objects.filter(
-            telegram_username__isnull=False
+            telegram_username__isnull=False, event=context.user_data["present_event"]
         ).exclude(telegram_id=chat_id)
 
         total_suggestions = suggestions_queryset.count()
