@@ -6,6 +6,7 @@ from telegram.ext import CallbackContext
 
 from convention.models import Attendee, Flow, Block, Presentation
 from python_meetup.state_machine import State, StateMachine
+from questions.models import Question
 
 
 class QuestionsPickFlowState(State):
@@ -181,6 +182,8 @@ class QuestionsAskFormState(State):
         )
 
     def handle_input(self, update: Update, context: CallbackContext):
+        chat_id = update.effective_chat.id
+
         if update.callback_query:
             self.save_message = False
             if update.callback_query.data == "menu":
@@ -188,12 +191,20 @@ class QuestionsAskFormState(State):
             return None
         elif update.message:
             self.save_message = True
-            question = update.message.text
+            question_text = update.message.text
+
+            author = Attendee.objects.get(
+                telegram_id=chat_id, event=context.user_data["present_event"]
+            )
+
+            Question.objects.create(
+                author=author, recipient=self.speaker, question_text=question_text
+            )
+
             context.bot.send_message(
-                chat_id=update.effective_chat.id,
+                chat_id=chat_id,
                 text="Спасибо за Ваш вопрос!",
             )
-            print(question)
             return StateMachine.INITIAL_STATE
 
         return None
