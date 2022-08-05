@@ -61,10 +61,13 @@ class SchedulePickBlockState(State):
                 ]
             )
 
-        menu_keyboard.append([InlineKeyboardButton("Назад", callback_data="back")])
         menu_keyboard.append(
-            [InlineKeyboardButton("Вернуться в меню", callback_data="menu")]
+            [
+                InlineKeyboardButton("Назад", callback_data="back"),
+                InlineKeyboardButton("Вернуться в меню", callback_data="menu"),
+            ]
         )
+
         self.message = context.bot.send_message(
             chat_id=chat_id,
             text=render_to_string(
@@ -104,9 +107,11 @@ class ScheduleShowPresentationsState(State):
             # [InlineKeyboardButton(block.title, callback_data=f"{block.id}")]
             # for block in self.flow.blocks.all()
         ]
-        menu_keyboard.append([InlineKeyboardButton("Назад", callback_data="back")])
         menu_keyboard.append(
-            [InlineKeyboardButton("Вернуться в меню", callback_data="menu")]
+            [
+                InlineKeyboardButton("Назад", callback_data="back"),
+                InlineKeyboardButton("Вернуться в меню", callback_data="menu"),
+            ]
         )
         self.message = context.bot.send_message(
             chat_id=chat_id,
