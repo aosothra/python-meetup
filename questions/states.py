@@ -81,7 +81,17 @@ class AnswerMenuState(State):
             answer_text = update.message.text
 
             self.current_question.answer_text = answer_text
+            self.current_question.is_author_notified = True
             self.current_question.save()
+
+            context.bot.send_message(
+                chat_id=self.current_question.author.telegram_id,
+                text=render_to_string(
+                    "answer.html",
+                    context={"question": self.current_question},
+                ),
+                parse_mode=PARSEMODE_HTML,
+            )
 
             context.bot.send_message(
                 chat_id=chat_id,

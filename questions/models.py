@@ -34,3 +34,10 @@ class Question(models.Model):
     is_ignored = models.BooleanField("Спикер убрал вопрос", default=False)
 
     objects = QuestionQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = "Вопрос участника"
+        verbose_name_plural = "Вопросы участников"
+
+    def __str__(self):
+        return f"{self.question_text}"
