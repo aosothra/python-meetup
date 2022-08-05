@@ -8,8 +8,9 @@ from telegram.constants import PARSEMODE_HTML
 from telegram.ext import CallbackContext
 
 from convention.models import Attendee, Event
+from convention.schedule_states import SchedulePickFlowState
 from donate.states import DonateState
-from python_meetup.state_machine import State
+from python_meetup.state_machine import State, StateMachine
 
 
 class MenuState(State):
@@ -23,13 +24,13 @@ class MenuState(State):
                 telegram_id=chat_id, event=context.user_data["present_event"]
             )
         except Event.DoesNotExist:
-            context.bot.send_message(
+            context.user_data["present_event"] = None
+            self.message = context.bot.send_message(
                 chat_id=chat_id,
                 text=(
                     "Похоже мероприятие завершилось или еще не началось.\n"
-                    "Следите за новостями чтобы не пропустить следующее мероприятие."
+                    "Следите за новостями чтобы не пропустить его в будущем."
                 ),
-                reply_markup=InlineKeyboardMarkup(menu_keyboard),
             )
             return
 
@@ -47,7 +48,8 @@ class MenuState(State):
 
     def handle_input(self, update: Update, context: CallbackContext):
         chat_id = update.effective_chat.id
-
+        if not context.user_data["present_event"]:
+            return StateMachine.INITIAL_STATE
         if not update.callback_query:
             return None
 
@@ -55,7 +57,7 @@ class MenuState(State):
         update.callback_query.answer()
 
         if answer == "schedule":
-            return SchedulePickEventState()
+            return SchedulePickFlowState()
         elif answer == "networking":
             attendee, new = Attendee.objects.get_or_create(telegram_id=chat_id)
             if attendee.is_anonymous():
@@ -65,7 +67,7 @@ class MenuState(State):
             return DonateState()
 
     def clean_up(self, update: Update, context: CallbackContext):
-        self.message.edit_reply_markup()
+        self.message.delete()
 
 
 class SignupNameState(State):
@@ -330,32 +332,3 @@ class NetworkingPresentApplicationState(State):
 
     def clean_up(self, update: Update, context: CallbackContext):
         self.message.edit_reply_markup()
-
-
-class SchedulePickEventState(State):
-    def display_data(self, chat_id: int, update: Update, context: CallbackContext):
-        # FIXME: выбирать мероприятия динамически
-        event = Event.objects.get(pk=1)
-        menu_keyboard = [
-            [InlineKeyboardButton(flow.title, callback_data=f"flow{flow.id}")]
-            for flow in event.flows.all()
-        ]
-        menu_keyboard.append([InlineKeyboardButton("Назад", callback_data="back")])
-        self.message = context.bot.send_message(
-            chat_id=chat_id,
-            text="Выберите поток мероприятия:",
-            reply_markup=InlineKeyboardMarkup(menu_keyboard),
-        )
-
-    def handle_input(self, update: Update, context: CallbackContext):
-        if not update.callback_query:
-            return None
-
-        answer = update.callback_query.data
-        update.callback_query.answer()
-
-        if answer == "back":
-            return MenuState()
-
-    def clean_up(self, update: Update, context: CallbackContext):
-        self.message.delete()
