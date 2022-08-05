@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "convention.apps.ConventionConfig",
     "donate.apps.DonateConfig",
+    "questions.apps.QuestionsConfig",
 ]
 
 MIDDLEWARE = [
@@ -118,4 +119,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 BOT_TOKEN = env("TG_BOT_TOKEN")
 
-PAYMENT_BOT_TOKEN= env("PAYMENT_BOT_TOKEN")
+PAYMENT_BOT_TOKEN = env("PAYMENT_BOT_TOKEN")

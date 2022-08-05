@@ -11,6 +11,7 @@ from convention.models import Attendee, Event
 from convention.schedule_states import SchedulePickFlowState
 from donate.states import DonateState
 from python_meetup.state_machine import State, StateMachine
+from questions.states import QuestionsPickFlowState
 
 
 class MenuState(State):
@@ -36,7 +37,7 @@ class MenuState(State):
 
         menu_keyboard = [
             [InlineKeyboardButton("Расписание", callback_data="schedule")],
-            [InlineKeyboardButton("Вопросы и ответы", callback_data="qa")],
+            [InlineKeyboardButton("Задать вопрос спикеру", callback_data="qa")],
             [InlineKeyboardButton("Нетворкинг", callback_data="networking")],
             [InlineKeyboardButton("Пожертвование", callback_data="donate")],
         ]
@@ -63,6 +64,8 @@ class MenuState(State):
             if attendee.is_anonymous():
                 return SignupNameState()
             return NetworkingMenuState()
+        elif answer == "qa":
+            return QuestionsPickFlowState()
         elif answer == "donate":
             return DonateState()
 

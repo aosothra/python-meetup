@@ -62,9 +62,6 @@ class Attendee(models.Model):
         verbose_name = "Участник"
         verbose_name_plural = "Участники"
 
-    def get_networking_application(self):
-        return f"{self.firstname} {self.lastname}\n{self.position}\n{self.company}"
-
     def is_anonymous(self):
         return not all(
             [
@@ -147,6 +144,7 @@ class Block(models.Model):
                 "title": presentation.title,
                 "speakers": [
                     {
+                        "id": speaker.id,
                         "name": f"{speaker.firstname} {speaker.lastname}",
                         "position": speaker.position,
                         "company": speaker.company,
