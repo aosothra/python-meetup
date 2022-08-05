@@ -1,0 +1,15 @@
+{% comment %} Сообщение при выборе блока {% endcomment %}
+<b>{{section}}</b>
+
+<i>{{flow.title}}</i> / <i>{{block.title}}</i> /
+
+{{block.starts_at|date:"H:i"}} - {{block.ends_at|date:"H:i"}} {{block.description|default:block.title}}
+{% if block.moderator %}
+<b>Модератор:</b> {{block.moderator.lastname}} {{block.moderator.firstname}}, {{block.moderator.position}} {{block.moderator.company}}
+{% endif %}
+
+{% for presentation in presentations %}
+<b>{{presentation.title}}</b>
+{% if presentation.speakers|length > 1 %}Спикеры:{% elif presentation.speakers|length == 1 %}Спикер:{% endif %}
+{% for speaker in presentation.speakers %}{{speaker.name}} - {{speaker.position}}, {{speaker.company}}{% endfor %}
+{% endfor %}

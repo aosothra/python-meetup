@@ -139,6 +139,25 @@ class Block(models.Model):
         verbose_name = "Блок докладов"
         verbose_name_plural = "Блоки докладов"
 
+    def serialize_presentations(self):
+        presentations = self.presentations.prefetch_related("speakers").all()
+        presentations_serialized = []
+        for presentation in presentations:
+            presentation_serialized = {
+                "title": presentation.title,
+                "speakers": [
+                    {
+                        "name": f"{speaker.firstname} {speaker.lastname}",
+                        "position": speaker.position,
+                        "company": speaker.company,
+                    }
+                    for speaker in presentation.speakers.all()
+                ],
+            }
+            presentations_serialized.append(presentation_serialized)
+
+        return presentations_serialized
+
     def __str__(self):
         return f"{self.flow.event.title} / {self.flow.title} / {self.title}"
 
@@ -165,4 +184,4 @@ class Presentation(models.Model):
         verbose_name_plural = "Выступления"
 
     def __str__(self):
-        return f"{self.block.flow.event.title} / {self.title} - {self.speaker}"
+        return f"{self.block.flow.event.title} / {self.title}"
