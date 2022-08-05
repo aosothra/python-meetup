@@ -3,6 +3,25 @@ from django.contrib import admin
 from convention.models import Attendee, Block, Event, Flow, Presentation
 
 
+class PresentationInline(admin.TabularInline):
+    model = Presentation
+    show_change_link = True
+    extra = 0
+
+
+class BlockInline(admin.TabularInline):
+    model = Block
+    fields = ("title", "moderator", "starts_at", "ends_at")
+    show_change_link = True
+    extra = 0
+
+
+class FlowInline(admin.TabularInline):
+    model = Flow
+    show_change_link = True
+    extra = 0
+
+
 @admin.register(Attendee)
 class AttendeeAdmin(admin.ModelAdmin):
     list_display = (
@@ -39,6 +58,9 @@ class EventAdmin(admin.ModelAdmin):
         "ending_date",
     )
     search_fields = ("title",)
+    inlines = [
+        FlowInline,
+    ]
 
 
 @admin.register(Flow)
@@ -51,6 +73,9 @@ class FlowAdmin(admin.ModelAdmin):
         "event",
         "title",
     )
+    inlines = [
+        BlockInline,
+    ]
 
 
 @admin.register(Block)
@@ -66,6 +91,9 @@ class BlockAdmin(admin.ModelAdmin):
         "title",
         "moderator",
     )
+    inlines = [
+        PresentationInline,
+    ]
 
 
 @admin.register(Presentation)
