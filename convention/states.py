@@ -11,6 +11,7 @@ from convention.models import Attendee, Event
 from convention.schedule_states import SchedulePickFlowState
 from donate.states import DonateState
 from python_meetup.state_machine import State, StateMachine
+from questions.states import QuestionsPickFlowState
 
 
 class MenuState(State):
@@ -36,7 +37,7 @@ class MenuState(State):
 
         menu_keyboard = [
             [InlineKeyboardButton("Расписание", callback_data="schedule")],
-            [InlineKeyboardButton("Вопросы и ответы", callback_data="qa")],
+            [InlineKeyboardButton("Задать вопрос спикеру", callback_data="qa")],
             [InlineKeyboardButton("Нетворкинг", callback_data="networking")],
             [InlineKeyboardButton("Пожертвование", callback_data="donate")],
         ]
@@ -63,6 +64,8 @@ class MenuState(State):
             if attendee.is_anonymous():
                 return SignupNameState()
             return NetworkingMenuState()
+        elif answer == "qa":
+            return QuestionsPickFlowState()
         elif answer == "donate":
             return DonateState()
 
@@ -190,7 +193,7 @@ class SignupConfirmState(State):
 class NetworkingMenuState(State):
     def display_data(self, chat_id: int, update: Update, context: CallbackContext):
         menu_keyboard = [
-            [InlineKeyboardButton("Вернуться", callback_data="back")],
+            [InlineKeyboardButton("Вернуться в меню", callback_data="back")],
         ]
         suggestions_queryset = Attendee.objects.filter(
             telegram_username__isnull=False
@@ -202,7 +205,8 @@ class NetworkingMenuState(State):
         else:
             message_text = f"Готовы посмотреть анкеты? (всего: {total_suggestions})"
 
-            menu_keyboard.append(
+            menu_keyboard.insert(
+                0,
                 [
                     InlineKeyboardButton(
                         "Просмотреть анкеты", callback_data="view_suggestions"
@@ -263,7 +267,7 @@ class NetworkingSuggestionState(State):
         menu_keyboard = [
             [InlineKeyboardButton("Посмотреть контакт", callback_data="get_contact")],
             [InlineKeyboardButton("Следующая анкета", callback_data="next")],
-            [InlineKeyboardButton("Вернуться", callback_data="back")],
+            [InlineKeyboardButton("Вернуться в меню", callback_data="back")],
         ]
 
         self.pick_random_suggestion(chat_id, context)
@@ -304,7 +308,7 @@ class NetworkingPresentApplicationState(State):
 
     def display_data(self, chat_id: int, update: Update, context: CallbackContext):
         menu_keyboard = [
-            [InlineKeyboardButton("Вернуться", callback_data="back")],
+            [InlineKeyboardButton("Вернуться в меню", callback_data="back")],
         ]
 
         message_text = render_to_string(
