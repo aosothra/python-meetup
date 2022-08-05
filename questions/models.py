@@ -4,13 +4,11 @@ from convention.models import Attendee
 
 # Create your models here.
 class Question(models.Model):
-    author = (
-        models.ForeignKey(
-            Attendee,
-            related_name="asked_questions",
-            verbose_name="Автор вопроса",
-            on_delete=models.CASCADE,
-        ),
+    author = models.ForeignKey(
+        Attendee,
+        related_name="asked_questions",
+        verbose_name="Автор вопроса",
+        on_delete=models.CASCADE,
     )
     recipient = models.ForeignKey(
         Attendee,
