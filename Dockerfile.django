@@ -1,0 +1,41 @@
+# Builder image
+
+FROM python:3.9.6-alpine as builder
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+WORKDIR /usr/src/python-meetup
+
+RUN pip install --upgrade pip
+COPY ./requirements.txt .
+RUN pip install -r requirements.txt
+
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/python-meetup/wheels -r requirements.txt
+
+# Final image
+
+FROM python:3.9.6-alpine
+
+RUN mkdir -p /home/python-meetup
+RUN addgroup -S django && adduser -S django -G django
+
+ENV HOME=/home/python-meetup
+ENV APP_HOME=/home/python-meetup/web
+RUN mkdir $APP_HOME
+WORKDIR $APP_HOME
+
+COPY --from=builder /usr/src/python-meetup/wheels /wheels
+COPY --from=builder /usr/src/python-meetup/requirements.txt .
+RUN pip install --no-cache /wheels/*
+
+COPY . $APP_HOME
+
+RUN sed -i 's/\r$//g' $APP_HOME/docker-entrypoint.sh
+RUN chmod +x $APP_HOME/docker-entrypoint.sh
+
+RUN chown -R django:django $APP_HOME
+
+USER django
+
+ENTRYPOINT ["/home/python-meetup/web/docker-entrypoint.sh"]
