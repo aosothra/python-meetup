@@ -2,22 +2,44 @@ version: "3.9"
    
 services:
   db:
-    image: postgres
+    image: postgres:13.0-alpine
     volumes:
       - ./data/db:/var/lib/postgresql/data
     env_file:
-      - prod.env
+      - .env.prod.db
   web:
-    build: .
-    command: >
-      sh -c "python manage.py collectstatic --noinput &&
-             python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+    build:
+      context: .
+      dockerfile: Dockerfile.django
+    command: gunicorn python_meetup.wsgi:application --bind 0.0.0.0:8000
     volumes:
-      - .:/build
-    ports:
-      - "8000:8000"
+      - static_volume:/home/python-meetup/web/staticfiles
+    expose:
+      - "8000"
     env_file:
-      - prod.env
+      - .env.prod
     depends_on:
       - db
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.django
+    command: python3 manage.py runbot
+    env_file:
+      - .env.prod
+    depends_on:
+      - web
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    volumes:
+      - static_volume:/home/python-meetup/web/staticfiles
+    ports:
+      - 80:80
+    depends_on:
+      - web
+
+volumes:
+  postgress_data:
+  static_volume:
