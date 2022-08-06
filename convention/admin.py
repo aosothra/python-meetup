@@ -83,10 +83,12 @@ class BlockAdmin(admin.ModelAdmin):
     list_display = (
         "flow",
         "title",
-        "moderator",
+        "get_moderator_name",
         "starts_at",
         "ends_at",
+        "presentation_count",
     )
+    list_filter = ("flow",)
     search_fields = (
         "title",
         "moderator",
@@ -94,6 +96,17 @@ class BlockAdmin(admin.ModelAdmin):
     inlines = [
         PresentationInline,
     ]
+
+    @admin.display(description="Всего докладов", empty_value="-")
+    def presentation_count(sefl, obj):
+        count = obj.presentations.count()
+        if count:
+            return count
+
+    @admin.display(description="Модератор")
+    def get_moderator_name(sefl, obj):
+        if obj.moderator:
+            return f"{obj.moderator.firstname} {obj.moderator.lastname}"
 
 
 @admin.register(Presentation)
