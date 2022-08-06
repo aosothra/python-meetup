@@ -86,6 +86,7 @@ class BlockAdmin(admin.ModelAdmin):
         "moderator",
         "starts_at",
         "ends_at",
+        "presentation_count",
     )
     search_fields = (
         "title",
@@ -94,6 +95,12 @@ class BlockAdmin(admin.ModelAdmin):
     inlines = [
         PresentationInline,
     ]
+
+    @admin.display(description="Всего докладов", empty_value="-")
+    def presentation_count(sefl, obj):
+        count = obj.presentations.count()
+        if count:
+            return count
 
 
 @admin.register(Presentation)
