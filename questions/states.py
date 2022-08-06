@@ -9,6 +9,105 @@ from python_meetup.state_machine import State, StateMachine
 from questions.models import Question
 
 
+class AnswerMenuState(State):
+    def __init__(self, question: Question):
+        self.current_question = question
+
+    def display_data(self, chat_id: int, update: Update, context: CallbackContext):
+        event = context.user_data["present_event"]
+
+        if not self.current_question:
+            menu_keyboard = [
+                [InlineKeyboardButton("Вернуться в меню", callback_data="menu")]
+            ]
+            self.message = context.bot.send_message(
+                chat_id=chat_id,
+                text="Похоже у Вас больше нет открытых вопросов.",
+                reply_markup=InlineKeyboardMarkup(menu_keyboard),
+            )
+            return
+
+        self.next_question = (
+            Question.objects.new(chat_id, event)
+            .filter(id__gt=self.current_question.id)
+            .order_by("id")
+            .first()
+        )
+
+        if not self.next_question:
+            self.next_question = (
+                Question.objects.new(chat_id, event).order_by("id").first()
+            )
+
+        self.next_question = (
+            self.next_question if self.next_question != self.current_question else None
+        )
+
+        menu_keyboard = [InlineKeyboardButton("Скрыть вопрос", callback_data="hide")]
+        if self.next_question:
+            menu_keyboard.append(
+                InlineKeyboardButton("Следующий вопрос", callback_data="next")
+            )
+        menu_keyboard = [
+            menu_keyboard,
+            [InlineKeyboardButton("Вернуться в меню", callback_data="menu")],
+        ]
+
+        self.message = context.bot.send_message(
+            chat_id=chat_id,
+            text=render_to_string(
+                "show_question.html",
+                context={"question": self.current_question},
+            ),
+            parse_mode=PARSEMODE_HTML,
+            reply_markup=InlineKeyboardMarkup(menu_keyboard),
+        )
+
+    def handle_input(self, update: Update, context: CallbackContext):
+        chat_id = update.effective_chat.id
+
+        if update.callback_query:
+            self.save_message = False
+            if update.callback_query.data == "menu":
+                return StateMachine.INITIAL_STATE
+            elif update.callback_query.data == "next":
+                return AnswerMenuState(self.next_question)
+            elif update.callback_query.data == "hide":
+                self.current_question.is_ignored = True
+                self.current_question.save()
+                return AnswerMenuState(self.next_question)
+        elif update.message:
+            self.save_message = True
+            answer_text = update.message.text
+
+            self.current_question.answer_text = answer_text
+            self.current_question.is_author_notified = True
+            self.current_question.save()
+
+            context.bot.send_message(
+                chat_id=self.current_question.author.telegram_id,
+                text=render_to_string(
+                    "answer.html",
+                    context={"question": self.current_question},
+                ),
+                parse_mode=PARSEMODE_HTML,
+            )
+
+            context.bot.send_message(
+                chat_id=chat_id,
+                text="Спасибо больше за Ваш ответ!",
+            )
+            return AnswerMenuState(self.next_question)
+
+        return None
+
+    def clean_up(self, update: Update, context: CallbackContext):
+        if self.save_message:
+            self.message.edit_reply_markup()
+        else:
+            self.message.delete()
+
+
 class QuestionsPickFlowState(State):
     def display_data(self, chat_id: int, update: Update, context: CallbackContext):
         event = context.user_data["present_event"]
@@ -68,9 +167,11 @@ class QuestionsPickBlockState(State):
                 ]
             )
 
-        menu_keyboard.append([InlineKeyboardButton("Назад", callback_data="back")])
         menu_keyboard.append(
-            [InlineKeyboardButton("Вернуться в меню", callback_data="menu")]
+            [
+                InlineKeyboardButton("Назад", callback_data="back"),
+                InlineKeyboardButton("Вернуться в меню", callback_data="menu"),
+            ]
         )
         self.message = context.bot.send_message(
             chat_id=chat_id,
@@ -123,9 +224,11 @@ class QuestionsPickSpeakerState(State):
             for speaker in speakers
         ]
 
-        menu_keyboard.append([InlineKeyboardButton("Назад", callback_data="back")])
         menu_keyboard.append(
-            [InlineKeyboardButton("Вернуться в меню", callback_data="menu")]
+            [
+                InlineKeyboardButton("Назад", callback_data="back"),
+                InlineKeyboardButton("Вернуться в меню", callback_data="menu"),
+            ]
         )
         self.message = context.bot.send_message(
             chat_id=chat_id,
