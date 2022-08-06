@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 class Event(models.Model):
     title = models.CharField(
         "Название ивента",
-        max_length=32,
+        max_length=100,
     )
     starting_date = models.DateField("День начала ивента")
     ending_date = models.DateField("День окончания ивента")
