@@ -88,6 +88,7 @@ class BlockAdmin(admin.ModelAdmin):
         "ends_at",
         "presentation_count",
     )
+    list_filter = ("flow",)
     search_fields = (
         "title",
         "moderator",
