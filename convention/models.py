@@ -176,10 +176,12 @@ class Presentation(models.Model):
         related_name="presentations",
         verbose_name="Спикеры",
     )
+    order_number = models.PositiveIntegerField("Номер по порядку", null=True)
 
     class Meta:
         verbose_name = "Выступление"
         verbose_name_plural = "Выступления"
+        ordering = ("order_number",)
 
     def __str__(self):
         return f"{self.block.flow.event.title} / {self.title}"

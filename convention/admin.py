@@ -7,6 +7,11 @@ class PresentationInline(admin.TabularInline):
     model = Presentation
     show_change_link = True
     extra = 0
+    fields = (
+        "order_number",
+        "title",
+    )
+    sortable_field_name = "order_number"
 
 
 class BlockInline(admin.TabularInline):
