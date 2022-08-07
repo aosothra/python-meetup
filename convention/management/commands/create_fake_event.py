@@ -10,7 +10,9 @@ from convention.models import Attendee, Block, Event, Flow, Presentation
 class Command(BaseCommand):
     def set_time(self, time: str, datetime: datetime):
         hour, minute = time.split(":")
-        return datetime.replace(hour=int(hour), minute=int(minute), second=0)
+        return datetime.replace(
+            hour=int(hour), minute=int(minute), second=0, microsecond=0
+        )
 
     def handle(self, *args, **options):
         now = timezone.now()
