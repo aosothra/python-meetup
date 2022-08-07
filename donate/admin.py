@@ -26,7 +26,8 @@ class DonateAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         chart = [
             {
-                "x": d.telegram_username if d.telegram_username else "Anonimus",
+                # "x": d.telegram_username if d.telegram_username else "Anonimus",
+                "created_at": d.created_at,
                 "y": d.amount,
             }
             for d in Donate.objects.all()
