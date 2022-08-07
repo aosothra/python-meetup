@@ -4,7 +4,7 @@ from django.utils.safestring import mark_safe
 
 from announcements.models import Announcement
 
-# Register your models here.
+
 @admin.register(Announcement)
 class AnnouncementAdmin(admin.ModelAdmin):
     ordering = ("released_on",)
