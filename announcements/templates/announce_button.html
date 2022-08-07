@@ -1,0 +1,16 @@
+<button id="announce_{{id}}" class="grp-button" style="width: auto">Разослать уведомления</button>
+<script>
+  let announce_button = document.querySelector("#announce_{{id}}")
+  announce_button.addEventListener("click", (event)=>{
+    event.preventDefault()
+    announce_button.disabled = true
+    announce_button.innerText = "Отправляем..."
+    fetch("{% url 'announce' id %}")
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        document.location.reload();
+      });
+  })
+</script>

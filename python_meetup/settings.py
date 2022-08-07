@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "convention.apps.ConventionConfig",
     "donate.apps.DonateConfig",
     "questions.apps.QuestionsConfig",
+    "announcements.apps.AnnouncementsConfig",
 ]
 
 MIDDLEWARE = [
