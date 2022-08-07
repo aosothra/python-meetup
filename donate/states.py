@@ -8,9 +8,12 @@ from python_meetup.state_machine import State, StateMachine
 
 class DonateState(State):
     def display_data(self, chat_id: int, update: Update, context: CallbackContext):
+        message = "Подскажите, на какую сумму в рублях вы хотите выполнить донат"
+        message = message + ' (от 65 до 1000 рублей)?'  
+
         context.bot.send_message(
             chat_id=chat_id,
-            text="Подскажите, на какую сумму в рублях вы хотите выполнить донат?",
+            text=message,
         )
 
     def handle_input(self, update: Update, context: CallbackContext):
@@ -20,8 +23,16 @@ class DonateState(State):
         answer = update.message.text
 
         if answer.isdigit() == True:
-            context.user_data["donate"] = int(answer)
-            return PaymentState()
+            amount = int(answer)
+
+            if amount < 65 or amount > 1000:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text="Введите, пожалуйста, сумму от 65 до 1000 рублей.",
+                )    
+            else:
+                context.user_data["donate"] = int(answer)
+                return PaymentState()
         else:
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -34,9 +45,19 @@ class DonateState(State):
 
 class PaymentState(State):
     def display_data(self, chat_id: int, update: Update, context: CallbackContext):
+        message = "1. В сообщении со счётом нажмите кнопку «Заплатить» (Pay)."
+        message = message + "\n\n"
+        message = message + "2. Откроется платёжная форма. "
+        message = message + "Введите в неё данные тестовой карты: "
+        message = message + "1111 1111 1111 1026 12/22 CVC 000. "
+        message = message + "Нажмите «Заплатить»."
+        message = message + "\n\n"
+        message = message + "3. На странице Checkout нажмите «Оплатить» (Pay) "
+        message = message + "и подтвердите платёж."
+
         self.message = context.bot.send_message(
             chat_id=chat_id,
-            text="Введите данные.",
+            text=message,
         )
 
         context.user_data["chat_id"] = update.effective_chat.id
