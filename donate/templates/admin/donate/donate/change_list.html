@@ -6,8 +6,11 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const ctx = document.getElementById('donation_chart').getContext('2d');
-    const chartData = {{ chart_data | safe }};
+    const canvas = document.getElementById('donation_chart');
+    const ctx = canvas.getContext('2d');
+    let chartData = JSON.parse(canvas.dataset.chart);
+
+    chartData.forEach(row => { row.x = new Date(row.created_at).toLocaleString() });
 
     const chart = new Chart(ctx, {
       type: 'bar',
@@ -22,9 +25,6 @@
       },
       options: {
         responsive: true,
-        scales: {
-          yAxes: [{ticks: {beginAtZero: true}}],
-        },
       },
     });
   });
@@ -33,7 +33,8 @@
 
 {% block content %}
 <div>
-  <canvas style="margin-bottom: 30px; width: 60%; height: 50%;" id="donation_chart"></canvas>
+  <canvas style="margin-bottom: 30px; width: 60%; height: 50%;" id="donation_chart"
+    data-chart='{{ chart_data | safe }}'></canvas>
 </div>
 {{ block.super }}
 {% endblock %}
