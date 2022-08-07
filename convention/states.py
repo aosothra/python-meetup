@@ -78,8 +78,7 @@ class MenuState(State):
         if answer == "schedule":
             return SchedulePickFlowState()
         elif answer == "networking":
-            attendee, new = Attendee.objects.get_or_create(telegram_id=chat_id)
-            if attendee.is_anonymous():
+            if not self.attendee.telegram_username:
                 return SignupNameState()
             return NetworkingMenuState()
         elif answer == "ask":
@@ -120,7 +119,6 @@ class SignupNameState(State):
 class SignupCompanyState(State):
     def display_data(self, chat_id: int, update: Update, context: CallbackContext):
         firstname = context.user_data["firstname"]
-        lastname = context.user_data["lastname"]
         context.bot.send_message(
             chat_id=chat_id,
             text=f"Приятно познакомиться, {firstname}. Скажите, пожалуйста, где Вы работаете?",
@@ -248,8 +246,6 @@ class NetworkingMenuState(State):
         )
 
     def handle_input(self, update: Update, context: CallbackContext):
-        chat_id = update.effective_chat.id
-
         if not update.callback_query:
             return None
 
@@ -312,8 +308,6 @@ class NetworkingSuggestionState(State):
         )
 
     def handle_input(self, update: Update, context: CallbackContext):
-        chat_id = update.effective_chat.id
-
         if not update.callback_query:
             return None
 
@@ -352,8 +346,6 @@ class NetworkingPresentApplicationState(State):
         )
 
     def handle_input(self, update: Update, context: CallbackContext):
-        chat_id = update.effective_chat.id
-
         if not update.callback_query:
             return None
 

@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db import models
-from django.db.models import Exists, Q
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 
@@ -105,11 +105,8 @@ class Attendee(models.Model):
     def is_anonymous(self):
         return not all(
             [
-                self.telegram_username,
                 self.firstname,
                 self.lastname,
-                self.company,
-                self.position,
             ]
         )
 
