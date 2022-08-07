@@ -75,7 +75,7 @@ class FlowAdmin(admin.ModelAdmin):
         "title",
     )
     search_fields = (
-        "event",
+        "event__title",
         "title",
     )
     inlines = [
@@ -96,7 +96,8 @@ class BlockAdmin(admin.ModelAdmin):
     list_filter = ("flow",)
     search_fields = (
         "title",
-        "moderator",
+        "moderator__firstname",
+        "moderator__lastname",
     )
     inlines = [
         PresentationInline,
