@@ -1,8 +1,7 @@
-from datetime import datetime
-
 from convention.models import Event
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 
 class Donate(models.Model):
@@ -32,7 +31,7 @@ class Donate(models.Model):
 
     created_at = models.DateTimeField(
         "Дата транзакции",
-        default=datetime.now,
+        default=timezone.now,
     )
 
     event = models.ForeignKey(

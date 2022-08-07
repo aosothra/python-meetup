@@ -33,8 +33,7 @@ class DonateState(State):
                     text="Введите, пожалуйста, сумму от 65 до 1000 рублей.",
                 )
             else:
-                context.user_data["donate"] = int(answer)
-                return PaymentState()
+                return PaymentState(int(answer))
         else:
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -46,6 +45,9 @@ class DonateState(State):
 
 
 class PaymentState(State):
+    def __init__(self, amount: int):
+        self.amount = amount
+
     def display_data(self, chat_id: int, update: Update, context: CallbackContext):
         self.message = context.bot.send_message(
             chat_id=chat_id,
@@ -53,16 +55,12 @@ class PaymentState(State):
             parse_mode=PARSEMODE_HTML,
         )
 
-        context.user_data["chat_id"] = update.effective_chat.id
-        context.user_data["username"] = update.message.chat.username
-        chat_id = update.message.chat_id
         title = "Донат на мероприятие"
         description = "Донат от участника"
         payload = "Custom-Payload"
         provider_token = settings.PAYMENT_BOT_TOKEN
         currency = "rub"
-        price = context.user_data["donate"]
-        prices = [LabeledPrice("Донатик", price * 100)]
+        prices = [LabeledPrice("Донатик", self.amount * 100)]
 
         self.invoice = context.bot.send_invoice(
             chat_id, title, description, payload, provider_token, currency, prices
@@ -73,17 +71,19 @@ class PaymentState(State):
         if query.invoice_payload != "Custom-Payload":
             query.answer(ok=False, error_message="Что-то пошло не так...")
             context.bot.send_message(
-                chat_id=update.pre_checkout_query.from_user.id,
+                chat_id=query.from_user.id,
                 text="Похоже возникла проблема при оплате. Вы можете попробовать еще раз.",
             )
         else:
             query.answer(ok=True)
             Donate.objects.create(
-                telegram_username=context.user_data["username"],
-                amount=context.user_data["donate"],
+                telegram_id=query.from_user.id,
+                telegram_username=query.from_user.username,
+                event=context.user_data["present_event"],
+                amount=self.amount,
             )
             context.bot.send_message(
-                chat_id=update.pre_checkout_query.from_user.id,
+                chat_id=query.from_user.id,
                 text="Спасибо за Ваш вклад в наше развитие! Мы всегда рады Вам!",
             )
 
