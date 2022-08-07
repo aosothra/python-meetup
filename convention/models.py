@@ -16,6 +16,44 @@ class Event(models.Model):
         verbose_name = "Ивент"
         verbose_name_plural = "Ивенты"
 
+    def clean(self):
+        end_date_collision = (
+            Event.objects.exclude(pk=self.pk)
+            .filter(
+                Q(starting_date__lte=self.ending_date)
+                & Q(ending_date__gte=self.ending_date)
+            )
+            .exists()
+        )
+        start_date_collision = (
+            Event.objects.exclude(pk=self.pk)
+            .filter(
+                Q(starting_date__lte=self.starting_date)
+                & Q(ending_date__gte=self.starting_date)
+            )
+            .exists()
+        )
+        full_range_collision = (
+            Event.objects.exclude(pk=self.pk)
+            .filter(
+                Q(starting_date__gte=self.starting_date)
+                & Q(ending_date__lte=self.ending_date)
+            )
+            .exists()
+        )
+        if start_date_collision or end_date_collision or full_range_collision:
+            error_fields = dict()
+            if start_date_collision or full_range_collision:
+                error_fields["starting_date"] = _(
+                    "Пересечение временного интервала с существующими мероприятиями."
+                )
+            if end_date_collision or full_range_collision:
+                error_fields["ending_date"] = _(
+                    "Пересечение временного интервала с существующими мероприятиями."
+                )
+
+            raise ValidationError(error_fields)
+
     def __str__(self):
         return self.title
 
