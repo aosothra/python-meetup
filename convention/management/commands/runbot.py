@@ -26,6 +26,9 @@ class Command(BaseCommand):
         dispatcher.add_handler(
             MessageHandler(Filters.text, state_machine.handle_message)
         )
+        dispatcher.add_handler(
+            MessageHandler(Filters.successful_payment, state_machine.handle_message)
+        )
         dispatcher.add_handler(CommandHandler("start", state_machine.handle_message))
         updater.start_polling()
         updater.idle()

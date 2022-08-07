@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.template.loader import render_to_string
-from telegram import LabeledPrice, Update
+from telegram import LabeledPrice, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
 from telegram.constants import PARSEMODE_HTML
 
@@ -24,21 +24,22 @@ class DonateState(State):
 
         answer = update.message.text
 
-        if answer.isdigit() == True:
-            amount = int(answer)
-
-            if amount < 65 or amount > 1000:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text="Введите, пожалуйста, сумму от 65 до 1000 рублей.",
-                )
-            else:
-                return PaymentState(int(answer))
-        else:
+        if answer.isdigit() is False:
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text="Вы ввели не число! Пожалуйста, введите целое число.",
             )
+            return None
+
+        amount = int(answer)
+
+        if amount < 65 or amount > 1000:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Введите, пожалуйста, сумму от 65 до 1000 рублей.",
+            )
+        else:
+            return PaymentState(int(answer))
 
     def clean_up(self, update: Update, context: CallbackContext):
         pass
@@ -49,10 +50,14 @@ class PaymentState(State):
         self.amount = amount
 
     def display_data(self, chat_id: int, update: Update, context: CallbackContext):
+        menu_keyboard = [
+            [InlineKeyboardButton("Вернуться в меню", callback_data="menu")]
+        ]
         self.message = context.bot.send_message(
             chat_id=chat_id,
             text=render_to_string("donate_details_message.html"),
             parse_mode=PARSEMODE_HTML,
+            reply_markup=InlineKeyboardMarkup(menu_keyboard),
         )
 
         title = "Донат на мероприятие"
@@ -67,27 +72,39 @@ class PaymentState(State):
         )
 
     def handle_input(self, update: Update, context: CallbackContext):
-        query = update.pre_checkout_query
+        if update.message and update.message.successful_payment:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Платеж прошел, спасибо!",
+            )
+            Donate.objects.create(
+                telegram_id=update.message.chat_id,
+                telegram_username=update.message.from_user.username,
+                event=context.user_data["present_event"],
+                amount=self.amount,
+            )
+            return StateMachine.INITIAL_STATE
+
+        if update.callback_query and update.callback_query.data == "menu":
+            return StateMachine.INITIAL_STATE
+
+        if not (query := update.pre_checkout_query):
+            return None
+
         if query.invoice_payload != "Custom-Payload":
             query.answer(ok=False, error_message="Что-то пошло не так...")
             context.bot.send_message(
                 chat_id=query.from_user.id,
                 text="Похоже возникла проблема при оплате. Вы можете попробовать еще раз.",
             )
+            return StateMachine.INITIAL_STATE
         else:
             query.answer(ok=True)
-            Donate.objects.create(
-                telegram_id=query.from_user.id,
-                telegram_username=query.from_user.username,
-                event=context.user_data["present_event"],
-                amount=self.amount,
-            )
             context.bot.send_message(
-                chat_id=query.from_user.id,
-                text="Спасибо за Ваш вклад в наше развитие! Мы всегда рады Вам!",
+                chat_id=query.from_user.id, text="Обрабатываем Ваш платеж..."
             )
 
-        return StateMachine.INITIAL_STATE
+            return None
 
     def clean_up(self, update: Update, context: CallbackContext):
         self.message.delete()
