@@ -108,10 +108,16 @@ class SignupNameState(State):
         if not update.message:
             return None
 
-        answer = update.message.text
-        firstname, lastname = answer.split(" ", 1)
-        context.user_data["firstname"] = firstname
-        context.user_data["lastname"] = lastname
+        fullname = update.message.text.split(" ", 1)
+        if len(fullname) != 2:
+            context.bot.send_message(
+                chat_id=update.message.chat_id,
+                text='Хм. Не похоже на полное имя. Пожалуйста введите Ваше имя в форме "Имя Фамилия":',
+            )
+            return None
+
+        context.user_data["firstname"] = fullname[0]
+        context.user_data["lastname"] = fullname[1]
 
         return SignupCompanyState()
 
