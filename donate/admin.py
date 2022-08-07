@@ -4,10 +4,19 @@ from django.contrib import admin
 from django.core.serializers.json import DjangoJSONEncoder
 
 from donate.models import Donate
+from import_export import resources
+from import_export.admin import ExportMixin
+
+
+class DonateResource(resources.ModelResource):
+    class Meta:
+        model = Donate
 
 
 @admin.register(Donate)
-class DonateAdmin(admin.ModelAdmin):
+class DonateAdmin(ExportMixin, admin.ModelAdmin):
+    change_list_template = "admin/donate/donate/change_list.html"
+    resource_class = DonateResource
     list_display = (
         "amount",
         "currency",

@@ -38,3 +38,8 @@
 </div>
 {{ block.super }}
 {% endblock %}
+
+{% block object-tools-items %}
+  {% include "admin/import_export/change_list_export_item.html" %}
+   {{ block.super }}
+{% endblock %}

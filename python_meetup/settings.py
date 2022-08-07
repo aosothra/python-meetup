@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "import_export",
     "convention.apps.ConventionConfig",
     "donate.apps.DonateConfig",
     "questions.apps.QuestionsConfig",
