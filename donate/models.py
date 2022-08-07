@@ -1,8 +1,14 @@
+from datetime import datetime
+
+from convention.models import Event
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
 
 class Donate(models.Model):
     """Donate model"""
 
+    telegram_id = models.IntegerField("ID в телеграмме")
     telegram_username = models.CharField(
         "Логин в телеграмме",
         max_length=32,
@@ -11,13 +17,28 @@ class Donate(models.Model):
     )
 
     amount = models.IntegerField(
-        'Сумма'
+        "Сумма",
+        validators=[
+            MinValueValidator(65),
+            MaxValueValidator(1000),
+        ],
     )
 
     currency = models.CharField(
-        'Валюта',
-        max_length = 3,
-        default = 'RUB'
+        "Валюта",
+        max_length=3,
+        default="RUB",
+    )
+
+    created_at = models.DateTimeField(
+        "Дата транзакции",
+        default=datetime.now,
+    )
+
+    event = models.ForeignKey(
+        Event,
+        related_name="donations",
+        on_delete=models.CASCADE,
     )
 
     class Meta:
