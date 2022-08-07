@@ -46,7 +46,7 @@ class MenuState(State):
             ],
             [
                 InlineKeyboardButton("Нетворкинг", callback_data="networking"),
-                InlineKeyboardButton("Пожертвование", callback_data="donate"),
+                InlineKeyboardButton("Задонатить", callback_data="donate"),
             ],
         ]
         if open_questions_count:
