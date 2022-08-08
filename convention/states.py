@@ -61,8 +61,12 @@ class MenuState(State):
 
         self.message = context.bot.send_message(
             chat_id=chat_id,
-            text="Здравствуйте! Это официальный бот по поддержке участников.",
+            text=render_to_string(
+                "menu_message.html",
+                context={"event": context.user_data["present_event"]},
+            ),
             reply_markup=InlineKeyboardMarkup(menu_keyboard),
+            parse_mode=PARSEMODE_HTML,
         )
 
     def handle_input(self, update: Update, context: CallbackContext):
