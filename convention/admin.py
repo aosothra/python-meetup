@@ -1,9 +1,10 @@
 from django.contrib import admin
+from grappelli.forms import GrappelliSortableHiddenMixin
 
 from convention.models import Attendee, Block, Event, Flow, Presentation
 
 
-class PresentationInline(admin.TabularInline):
+class PresentationInline(GrappelliSortableHiddenMixin, admin.TabularInline):
     model = Presentation
     show_change_link = True
     extra = 0
@@ -121,4 +122,5 @@ class PresentationAdmin(admin.ModelAdmin):
         "block",
         "title",
     )
+    readonly_fields = ("order_number",)
     search_fields = ("title",)
