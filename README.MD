@@ -93,4 +93,4 @@ This will deploy 4 containers:
 
 # Goal
 
-This project was created as Team Work exercise on [Devman](https://dvmn.org/) Python Developer course.
+This project was created as code showcase.
